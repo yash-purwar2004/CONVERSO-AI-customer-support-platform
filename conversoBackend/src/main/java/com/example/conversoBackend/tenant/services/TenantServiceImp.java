@@ -2,7 +2,6 @@ package com.example.conversoBackend.tenant.services;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -20,43 +19,15 @@ import com.example.conversoBackend.tenant.services.interfaces.TenantSettingServi
 public class TenantServiceImp implements TenantService {
 
     private final TenantRepository tenantRepository;
-    private final TenantSettingService tenantSettingService;
-    private final PublicApiKeyServiceImpl publicApiKeyService;
     private final PublicApiKeyRepository publicApiKeyRepository;
     private final TenantSettingsRepository tenantSettingsRepository;
 
     public TenantServiceImp(TenantRepository tenantRepository, PublicApiKeyRepository publicApiKeyRepository, TenantSettingService tenantSettingService, PublicApiKeyServiceImpl publicApiKeyService, TenantSettingsRepository tenantSettingsRepository) {
         this.tenantRepository = tenantRepository;
         this.publicApiKeyRepository = publicApiKeyRepository;
-        this.tenantSettingService = tenantSettingService;
-        this.publicApiKeyService = publicApiKeyService;
         this.tenantSettingsRepository = tenantSettingsRepository;
     }
 
-    @Override
-    public Tenant createTenant(Tenant input) {
-        if (tenantRepository.existsByDomain(input.getDomain())) {
-            throw new RuntimeException("Tenant with domain " + input.getDomain() + " already exists.");
-        }
-
-        Tenant tenant = new Tenant();
-        tenant.setId(UUID.randomUUID().toString());
-        tenant.setCompanyName(input.getCompanyName());
-        tenant.setDomain(input.getDomain());
-        tenant.setStatus(TenantStatus.ACTIVE);
-        tenant.setCreatedAt(Instant.now());
-        tenant.setUpdatedAt(Instant.now());
-        tenantRepository.save(tenant);
-
-        TenantSettings defaultSettings = new TenantSettings();
-        defaultSettings.setTenantId(tenant.getId());
-        defaultSettings.setBotName("Default Bot");// Set a default bot name or other default settings as needed
-        defaultSettings.setTone("FORMAL");
-        tenantSettingService.createDefaultSettings(defaultSettings); // Initialize default settings for the new tenant
-        publicApiKeyService.generateApiKeyForTenant(tenant.getId()); // Generate a public API key for the new tenant
-
-        return tenant;
-    }
 
     @Override
     public Tenant getTenantById(String tenantId) {

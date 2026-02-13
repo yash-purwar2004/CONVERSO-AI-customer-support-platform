@@ -18,4 +18,7 @@ public interface TenantRepository extends MongoRepository<Tenant, String> {
     // list all non-deleted tenants
     List<Tenant> findByStatusNot(TenantStatus status);
 
+    void deleteById(String tenantId);
+
+
 }

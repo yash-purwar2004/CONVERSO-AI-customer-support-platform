@@ -10,6 +10,9 @@ public interface TenantSettingsRepository extends MongoRepository<TenantSettings
     // Find settings by tenant ID
     Optional<TenantSettings> findByTenantId(String tenantId);
 
+    void deleteByTenantId(String tenantId);
+
+
 
     
 }

@@ -6,9 +6,6 @@ import com.example.conversoBackend.tenant.model.Tenant;
 
 public interface TenantService {
 
-    // CREATE
-    Tenant createTenant(Tenant tenant);
-
     // READ
     Tenant getTenantById(String tenantId);
     List<Tenant> getAllTenants();

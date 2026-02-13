@@ -1,5 +1,6 @@
 package com.example.conversoBackend.tenant.controller;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.conversoBackend.tenant.model.Tenant;
@@ -21,38 +22,38 @@ public class TenantController {
 
     @Autowired
     private TenantService tenantService;
-    
-    @PostMapping("/createTenant")
-    public Tenant createTenant(@RequestBody Tenant tenant) {
-        return tenantService.createTenant(tenant);
-    }
 
-
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TENANT_ADMIN')")
     @GetMapping("/id/{tenantId}")
     public Tenant getTenantById(@PathVariable String tenantId) {
         return tenantService.getTenantById(tenantId);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     public Iterable<Tenant> getAllTenants() {
         return tenantService.getAllTenants();
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TENANT_ADMIN')")
     @PostMapping("/updateTenant/{tenantId}")
     public Tenant updateTenant(@PathVariable String tenantId, @RequestBody Tenant tenant) { 
         return tenantService.updateTenant(tenantId, tenant);
     }   
 
-   @DeleteMapping("/{tenantId}")
+    @PreAuthorize("hasRole('ADMIN')") // Only users with the ADMIN role can delete tenants, ensuring that this operation is restricted to authorized personnel.
+    @DeleteMapping("/delete/{tenantId}")
     public void deleteTenant(@PathVariable String tenantId) {
         tenantService.deleteTenant(tenantId);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/activateTenant/{tenantId}")
     public void activateTenant(@PathVariable String tenantId) { //
         tenantService.activateTenant(tenantId);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/deactivateTenant/{tenantId}")
     public void deactivateTenant(@PathVariable String tenantId) {
         tenantService.deactivateTenant(tenantId);

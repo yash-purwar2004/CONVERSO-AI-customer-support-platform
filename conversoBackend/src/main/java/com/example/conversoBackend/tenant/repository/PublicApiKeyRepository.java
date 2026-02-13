@@ -10,4 +10,7 @@ public interface PublicApiKeyRepository extends MongoRepository<PublicApiKey, St
     
     // Find a public API key by tenant ID
     Optional<PublicApiKey> findByTenantId(String tenantId);
+
+    void deleteByTenantId(String tenantId);
+
 }
