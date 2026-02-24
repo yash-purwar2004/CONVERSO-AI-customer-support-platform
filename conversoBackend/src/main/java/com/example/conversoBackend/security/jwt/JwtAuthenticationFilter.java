@@ -9,45 +9,69 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.conversoBackend.security.service.CustomerUserDetailsService;
+import com.example.conversoBackend.security.model.SecurityUser;
+import com.example.conversoBackend.security.util.TenantContext;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@Component // Marks this class as a Spring component, allowing it to be automatically detected and registered as a bean in the application context
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    // This filter will intercept incoming HTTP requests and check for the presence of a JWT token in the Authorization header.
-    // If a valid token is found, it will set the authentication in the security context, allowing the request to proceed.
-    // If no token is found or if the token is invalid, the filter will not set authentication, and the request will be rejected by Spring Security's authorization mechanisms.
 
     private final JwtTokenProvider jwtProvider;
     private final CustomerUserDetailsService userDetailsService;
 
-        public JwtAuthenticationFilter(JwtTokenProvider jwtProvider, CustomerUserDetailsService userDetailsService) {
-            this.jwtProvider = jwtProvider;
-            this.userDetailsService = userDetailsService;
-        }
+    public JwtAuthenticationFilter(JwtTokenProvider jwtProvider,
+                                   CustomerUserDetailsService userDetailsService) {
+        this.jwtProvider = jwtProvider;
+        this.userDetailsService = userDetailsService;
+    }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // Extract the JWT token from the Authorization header
-        String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7); // Remove "Bearer " prefix
-            if (jwtProvider.validateToken(token)) {
-                
-                String userId = jwtProvider.extractUserId(token);
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+        try {
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            String header = request.getHeader("Authorization");
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            if (header != null && header.startsWith("Bearer ")) {
+
+                String token = header.substring(7);
+
+                if (jwtProvider.validateToken(token)) {
+
+                    String userId = jwtProvider.extractUserId(token);
+
+                    UserDetails userDetails =
+                            userDetailsService.loadUserByUsername(userId);
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+
+                    SecurityContextHolder.getContext()
+                            .setAuthentication(authentication);
+
+                    // ✅ Set TenantContext
+                    if (userDetails instanceof SecurityUser securityUser) {
+                        TenantContext.setTenant(securityUser.getTenantId());
+                    }
+                }
             }
-        }
 
-        filterChain.doFilter(request, response); // Continue the filter chain
+            filterChain.doFilter(request, response);
+
+        } finally {
+            // ✅ VERY IMPORTANT — clear after request completes
+            TenantContext.clear();
+        }
     }
-    
 }

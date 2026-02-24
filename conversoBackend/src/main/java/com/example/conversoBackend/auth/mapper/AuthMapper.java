@@ -14,7 +14,7 @@ import com.example.conversoBackend.user.model.Role;
 import com.example.conversoBackend.user.model.User;
 import com.example.conversoBackend.user.model.UserStatus;
 
-
+// Mapper class to convert between DTOs and entities for authentication-related operations
 @Component
 public class AuthMapper {
     public Tenant toTenant(SignupRequest request) {

@@ -7,18 +7,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "tenants")
 public class Tenant {
-    
     @Id
     private String id; // tenantId (UUID)
-
     private String companyName;  // "Acme Pvt Ltd"
-
     private String domain; // "acme.com --> Basically a Company URL"
-
     private TenantStatus status; // ACTIVE, SUSPENDED
-
     private Instant createdAt;
-
     private Instant updatedAt;
 
     public String getId() {
@@ -68,6 +62,4 @@ public class Tenant {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
-
-    
 }

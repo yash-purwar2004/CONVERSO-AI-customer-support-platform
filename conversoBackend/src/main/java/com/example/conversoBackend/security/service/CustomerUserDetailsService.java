@@ -9,6 +9,8 @@ import com.example.conversoBackend.security.model.SecurityUser;
 import com.example.conversoBackend.user.model.User;
 import com.example.conversoBackend.user.repository.UserRepository;
 
+// The CustomerUserDetailsService class implements the UserDetailsService interface from Spring Security.
+// It is annotated with @Service, indicating that it is a Spring service component that can be injected into other parts of the application where user details are needed for authentication and authorization processes.
 @Service
 public class CustomerUserDetailsService implements UserDetailsService {
     // This service is responsible for loading user details based on the user ID extracted from the JWT token.

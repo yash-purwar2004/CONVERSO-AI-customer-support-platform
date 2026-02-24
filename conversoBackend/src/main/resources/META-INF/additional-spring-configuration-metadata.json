@@ -1,5 +1,57 @@
-{"properties": [{
-  "name": "jwt.secret",
-  "type": "java.lang.String",
-  "description": "A description for 'jwt.secret'"
-}]}
+{"properties": [
+  {
+    "name": "jwt.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'jwt.secret'"
+  },
+  {
+    "name": "ai.gemini.embedding.model",
+    "type": "java.lang.String",
+    "description": "A description for 'ai.gemini.embedding.model'"
+  },
+  {
+    "name": "ai.gemini.chat.model",
+    "type": "java.lang.String",
+    "description": "A description for 'ai.gemini.chat.model'"
+  },
+  {
+    "name": "ai.gemini.api.key",
+    "type": "java.lang.String",
+    "description": "A description for 'ai.gemini.api.key'"
+  },
+  {
+    "name": "ai.gemini.base.url",
+    "type": "java.lang.String",
+    "description": "A description for 'ai.gemini.base.url'"
+  },
+  {
+    "name": "ai.openai.api.key",
+    "type": "java.lang.String",
+    "description": "OpenAI API key for authentication"
+  },
+  {
+    "name": "ai.openai.chat.model",
+    "type": "java.lang.String",
+    "description": "OpenAI chat model identifier"
+  },
+  {
+    "name": "ai.openai.embedding.model",
+    "type": "java.lang.String",
+    "description": "OpenAI embedding model identifier"
+  },
+  {
+    "name": "ai.openai.base.url",
+    "type": "java.lang.String",
+    "description": "OpenAI API base URL"
+  },
+  {
+    "name": "ailo.chunking.overlap",
+    "type": "java.lang.String",
+    "description": "A description for 'ailo.chunking.overlap'"
+  },
+  {
+    "name": "ailo.chunking.chunk-size",
+    "type": "java.lang.String",
+    "description": "A description for 'ailo.chunking.chunk-size'"
+  }
+]}

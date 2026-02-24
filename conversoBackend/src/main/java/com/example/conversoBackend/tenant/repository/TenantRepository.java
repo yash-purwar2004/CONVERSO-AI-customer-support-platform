@@ -3,10 +3,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
 import com.example.conversoBackend.tenant.model.Tenant;
 import com.example.conversoBackend.tenant.model.TenantStatus;
 
+@Repository
 public interface TenantRepository extends MongoRepository<Tenant, String> {
 
     // find a tenant by its unique ID

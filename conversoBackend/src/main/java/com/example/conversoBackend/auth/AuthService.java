@@ -17,6 +17,7 @@ import com.example.conversoBackend.tenant.services.interfaces.TenantSettingServi
 import com.example.conversoBackend.user.model.User;
 import com.example.conversoBackend.user.model.UserStatus;
 import com.example.conversoBackend.user.repository.UserRepository;
+import com.example.conversoBackend.security.util.TenantContext;
 
 
 @Service
@@ -47,6 +48,9 @@ public class AuthService {
     public AuthResponse signup(SignupRequest request) {
         Tenant tenant = authMapper.toTenant(request);
         Tenant savedTenant = tenantRepository.save(tenant);
+
+        // Set tenant context so it's available throughout the signup flow
+        TenantContext.setTenant(savedTenant.getId());
 
         TenantSettings settings = authMapper.toTenantSettings(request, savedTenant.getId());
         tenantSettingService.createDefaultSettings(settings);

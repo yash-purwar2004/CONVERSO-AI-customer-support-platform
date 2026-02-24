@@ -68,6 +68,7 @@ public class UserServiceImpl implements userService {
         publicApiKeyRepository.deleteByTenantId(tenantId);
         tenantSettingsRepository.deleteByTenantId(tenantId);
 
+
         // delete tenant itself
         tenantRepository.deleteById(tenantId);
     }

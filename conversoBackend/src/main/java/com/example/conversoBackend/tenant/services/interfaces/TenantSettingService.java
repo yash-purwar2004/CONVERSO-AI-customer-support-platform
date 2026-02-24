@@ -12,4 +12,6 @@ public interface TenantSettingService {
     // Update settings for a tenant
     TenantSettings updateSettings(String tenantId, TenantSettings settings);
 
+    String getTone(String tenantId);
+
 }

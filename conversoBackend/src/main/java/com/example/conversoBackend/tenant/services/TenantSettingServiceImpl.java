@@ -2,6 +2,7 @@ package com.example.conversoBackend.tenant.services;
 
 import org.springframework.stereotype.Service;
 import com.example.conversoBackend.tenant.model.TenantSettings;
+import com.example.conversoBackend.tenant.model.Tone;
 import com.example.conversoBackend.tenant.repository.TenantSettingsRepository;
 import com.example.conversoBackend.tenant.services.interfaces.TenantSettingService;
 
@@ -38,4 +39,23 @@ public class TenantSettingServiceImpl implements TenantSettingService{
         existingSettings.setTone(settings.getTone());
         return tenantSettingsRepository.save(existingSettings);
     }
+
+    @Override
+    public String getTone(String tenantId) {
+
+    if (tenantId == null || tenantId.isBlank()) {
+        return "professional and helpful";
+    }
+
+    return tenantSettingsRepository.findByTenantId(tenantId)
+            .map(setting -> {
+                Tone toneEnum = setting.getTone();
+                if (toneEnum == null) {
+                    return "professional and helpful";
+                }
+                return toneEnum.name().toLowerCase();
+            })
+            .orElse("professional and helpful");
+}
+
 }

@@ -36,7 +36,7 @@ public class securityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
             .requestMatchers("/auth/**").permitAll() // Allow unauthenticated access to authentication endpointsconversoBackendApplication
-            .requestMatchers("/widget/**").permitAll() // Require authentication for all API endpoints
+            .requestMatchers("/api/widget/**").permitAll() // Require authentication for all API endpoints
             .anyRequest().authenticated() // Require authentication for all other requests
         )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter before the default username/password filter
