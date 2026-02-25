@@ -2,10 +2,11 @@ package com.example.conversoBackend.user.services;
 
 import java.time.Instant;
 import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.conversoBackend.ingestion.Model.CrawledPageDocumentRepository;
+import com.example.conversoBackend.ingestion.Model.VectorDocumentRepository;
 import com.example.conversoBackend.tenant.repository.PublicApiKeyRepository;
 import com.example.conversoBackend.tenant.repository.TenantRepository;
 import com.example.conversoBackend.tenant.repository.TenantSettingsRepository;
@@ -24,13 +25,17 @@ public class UserServiceImpl implements userService {
     private TenantSettingsRepository tenantSettingsRepository;
     private PublicApiKeyRepository publicApiKeyRepository;
     private TenantService tenantService;
+    private VectorDocumentRepository vectorDocumentRepository;
+    private CrawledPageDocumentRepository crawledPageDocumentRepository;
 
-    public UserServiceImpl(UserRepository userRepository, TenantRepository tenantRepository, TenantService tenantService, TenantSettingsRepository tenantSettingsRepository, PublicApiKeyRepository publicApiKeyRepository) {
+    public UserServiceImpl(UserRepository userRepository, TenantRepository tenantRepository, TenantService tenantService, TenantSettingsRepository tenantSettingsRepository, PublicApiKeyRepository publicApiKeyRepository, VectorDocumentRepository vectorDocumentRepository, CrawledPageDocumentRepository crawledPageDocumentRepository) {
         this.userRepository = userRepository;
         this.tenantRepository = tenantRepository;
         this.tenantService = tenantService;
         this.tenantSettingsRepository = tenantSettingsRepository;
         this.publicApiKeyRepository = publicApiKeyRepository;
+        this.vectorDocumentRepository = vectorDocumentRepository;
+        this.crawledPageDocumentRepository = crawledPageDocumentRepository;
     }
 
     @Override
@@ -64,9 +69,12 @@ public class UserServiceImpl implements userService {
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId + " in tenant: " + tenantId));
 
         // delete all tenant related data
+         
         userRepository.delete(existingUser);
         publicApiKeyRepository.deleteByTenantId(tenantId);
         tenantSettingsRepository.deleteByTenantId(tenantId);
+        crawledPageDocumentRepository.deleteAll(crawledPageDocumentRepository.findByTenantId(tenantId));
+        vectorDocumentRepository.deleteAll(vectorDocumentRepository.findByTenantId(tenantId));
 
 
         // delete tenant itself

@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.example.conversoBackend.ingestion.Model.CrawledPageDocumentRepository;
+import com.example.conversoBackend.ingestion.Model.VectorDocumentRepository;
 import com.example.conversoBackend.tenant.model.PublicApiKey;
 import com.example.conversoBackend.tenant.model.Tenant;
 import com.example.conversoBackend.tenant.model.TenantSettings;
@@ -21,11 +23,15 @@ public class TenantServiceImp implements TenantService {
     private final TenantRepository tenantRepository;
     private final PublicApiKeyRepository publicApiKeyRepository;
     private final TenantSettingsRepository tenantSettingsRepository;
+    private final VectorDocumentRepository vectorDocumentRepository;
+    private final CrawledPageDocumentRepository crawledPageDocumentRepository;
 
-    public TenantServiceImp(TenantRepository tenantRepository, PublicApiKeyRepository publicApiKeyRepository, TenantSettingService tenantSettingService, PublicApiKeyServiceImpl publicApiKeyService, TenantSettingsRepository tenantSettingsRepository) {
+    public TenantServiceImp(TenantRepository tenantRepository, PublicApiKeyRepository publicApiKeyRepository, TenantSettingService tenantSettingService, PublicApiKeyServiceImpl publicApiKeyService, TenantSettingsRepository tenantSettingsRepository, VectorDocumentRepository vectorDocumentRepository, CrawledPageDocumentRepository crawledPageDocumentRepository) {
         this.tenantRepository = tenantRepository;
         this.publicApiKeyRepository = publicApiKeyRepository;
         this.tenantSettingsRepository = tenantSettingsRepository;
+        this.vectorDocumentRepository = vectorDocumentRepository;
+        this.crawledPageDocumentRepository = crawledPageDocumentRepository;
     }
 
 
@@ -69,6 +75,8 @@ public class TenantServiceImp implements TenantService {
 
         tenantSettingsRepository.delete(tenantsetting);
         publicApiKeyRepository.delete(publicApiKey);
+        vectorDocumentRepository.deleteAll(vectorDocumentRepository.findByTenantId(tenantId));
+        crawledPageDocumentRepository.deleteAll(crawledPageDocumentRepository.findByTenantId(tenantId));
         tenantRepository.delete(existingTenant);
     }
 

@@ -23,18 +23,19 @@ import com.example.conversoBackend.security.util.TenantContext;
 @Service
 public class AuthService {
 
-    private PublicApiKeyService publicApiKeyService;
-    private TenantRepository tenantRepository;
-    private TenantSettingService tenantSettingService;
-    private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
-    private JwtTokenProvider jwtTokenProvider;
-    private AuthMapper authMapper;
+    private final PublicApiKeyService publicApiKeyService;
+    private final TenantRepository tenantRepository;
+    private final TenantSettingService tenantSettingService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthMapper authMapper;
+    private final EmailService emailService;
 
-
-    AuthService(PublicApiKeyService publicApiKeyService, TenantRepository tenantRepository,
+    public AuthService(PublicApiKeyService publicApiKeyService, TenantRepository tenantRepository,
                 TenantSettingService tenantSettingService, UserRepository userRepository,
-                PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, AuthMapper authMapper) {
+                PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, AuthMapper authMapper,
+                EmailService emailService) {
         this.publicApiKeyService = publicApiKeyService;
         this.tenantRepository = tenantRepository;
         this.tenantSettingService = tenantSettingService;
@@ -42,26 +43,51 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.authMapper = authMapper;
+        this.emailService = emailService;
     }
 
-    @Transactional // This annotation indicates that the method should be executed within a transaction. If any part of the method fails, the entire transaction will be rolled back, ensuring data integrity.
+   @Transactional
     public AuthResponse signup(SignupRequest request) {
+
+        // 🔥 FIRST CHECK
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already registered, tenant not created");
+        }
+
+        // Now safe to create tenant
         Tenant tenant = authMapper.toTenant(request);
         Tenant savedTenant = tenantRepository.save(tenant);
 
-        // Set tenant context so it's available throughout the signup flow
         TenantContext.setTenant(savedTenant.getId());
 
-        TenantSettings settings = authMapper.toTenantSettings(request, savedTenant.getId());
+        User tenantAdmin = authMapper.toTenantAdmin(
+            request,
+            savedTenant.getId(),
+            passwordEncoder
+        );
+
+        userRepository.save(tenantAdmin);
+
+        TenantSettings settings =
+            authMapper.toTenantSettings(request, savedTenant.getId());
+
         tenantSettingService.createDefaultSettings(settings);
 
         publicApiKeyService.generateApiKeyForTenant(savedTenant.getId());
 
-        User tenantAdmin = authMapper.toTenantAdmin(request, savedTenant.getId(), passwordEncoder);
-        userRepository.save(tenantAdmin);
+        emailService.sendSignupEmail(
+            tenantAdmin.getEmail(),
+            tenantAdmin.getName()
+        );
 
         String token = jwtTokenProvider.generateToken(tenantAdmin);
-        return new AuthResponse(token, tenantAdmin.getEmail(), tenantAdmin.getRole().name(), savedTenant.getId());
+
+        return new AuthResponse(
+            token,
+            tenantAdmin.getEmail(),
+            tenantAdmin.getRole().name(),
+            savedTenant.getId()
+        );
     }
 
 
@@ -75,16 +101,16 @@ public class AuthService {
             throw new RuntimeException("Account is not active");
         }
 
-
         if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPasswordHash())) {
-
             throw new RuntimeException("Invalid email or password");
         }
 
-        String token = jwtTokenProvider.generateToken(user);
+        // Send welcome email on login
+        emailService.sendLoginEmail(user.getEmail(), user.getName());
 
+        String token = jwtTokenProvider.generateToken(user);
         return authMapper.toAuthResponse(token, user);
     }
 }
