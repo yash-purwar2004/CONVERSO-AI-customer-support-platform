@@ -8,8 +8,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.example.conversoBackend.security.service.CustomerUserDetailsService;
 import com.example.conversoBackend.security.model.SecurityUser;
+import com.example.conversoBackend.security.service.CustomerUserDetailsService;
 import com.example.conversoBackend.security.util.TenantContext;
 
 import jakarta.servlet.FilterChain;
@@ -20,49 +20,66 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenProvider jwtProvider;
+    private final JwtTokenProvider jwtTokenProvider;
     private final CustomerUserDetailsService userDetailsService;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtProvider,
-                                   CustomerUserDetailsService userDetailsService) {
-        this.jwtProvider = jwtProvider;
+    public JwtAuthenticationFilter(
+            JwtTokenProvider jwtTokenProvider,
+            CustomerUserDetailsService userDetailsService
+    ) {
+        this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * ✅ Do NOT apply JWT filter to public endpoints
+     */
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/auth/");
+    }
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
         try {
-
             String header = request.getHeader("Authorization");
 
             if (header != null && header.startsWith("Bearer ")) {
 
                 String token = header.substring(7);
 
-                if (jwtProvider.validateToken(token)) {
+                if (jwtTokenProvider.validateToken(token)) {
 
-                    String userId = jwtProvider.extractUserId(token);
+                    String userId = jwtTokenProvider.extractUserId(token);
 
-                    UserDetails userDetails =
-                            userDetailsService.loadUserByUsername(userId);
+                    try {
+                        UserDetails userDetails =
+                                userDetailsService.loadUserByUsername(userId);
 
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails,
+                                        null,
+                                        userDetails.getAuthorities()
+                                );
 
-                    SecurityContextHolder.getContext()
-                            .setAuthentication(authentication);
+                        SecurityContextHolder.getContext()
+                                .setAuthentication(authentication);
 
-                    // ✅ Set TenantContext
-                    if (userDetails instanceof SecurityUser securityUser) {
-                        TenantContext.setTenant(securityUser.getTenantId());
+                        // ✅ Set tenant context safely
+                        if (userDetails instanceof SecurityUser securityUser) {
+                            TenantContext.setTenant(securityUser.getTenantId());
+                        }
+
+                    } catch (Exception ex) {
+                        // Invalid token OR user not found
+                        SecurityContextHolder.clearContext();
                     }
                 }
             }
@@ -70,7 +87,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } finally {
-            // ✅ VERY IMPORTANT — clear after request completes
+            // ✅ Always clear tenant context after request
             TenantContext.clear();
         }
     }

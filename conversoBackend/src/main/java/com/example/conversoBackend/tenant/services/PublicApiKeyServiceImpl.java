@@ -30,4 +30,10 @@ public class PublicApiKeyServiceImpl implements PublicApiKeyService {
 		publicApiKeyRepository.save(publicApiKey);
 		return publicApiKey;
 	}
+
+	@Override
+	public PublicApiKey getApiKeyForTenant(String tenantId) {
+		return publicApiKeyRepository.findByTenantId(tenantId)
+				.orElseThrow(() -> new RuntimeException("API key not found for tenant: " + tenantId));
+	}
 }

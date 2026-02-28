@@ -18,4 +18,6 @@ public interface PublicApiKeyRepository extends MongoRepository<PublicApiKey, St
 
     void deleteByTenantId(String tenantId);
 
+
+
 }
