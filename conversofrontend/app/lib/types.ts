@@ -4,7 +4,7 @@ export interface SignupRequest {
   password: string;
   companyName: string;
   domain: string;
-  tone: "CASUAL" | "FORMAL";
+  tone: "CASUAL" | "FORMAL" | "FRIENDLY" | "PROFESSIONAL";
 }
 
 export interface LoginRequest {
